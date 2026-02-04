@@ -1,4 +1,8 @@
+# Env files (anywhere)
 .env
-.env.local
-.env.development
-.env.production
+**/.env
+
+# Backend env
+backend/.env
+backend/.env.*
+
