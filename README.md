@@ -71,6 +71,11 @@ Adaptive Learning & Continuous Improvement
 - **Backend:** Node.js / Python (Flask / FastAPI)  
 - **Machine Learning:** Python, Scikit-learn (future: TensorFlow)  
 - **Database:** MongoDB / PostgreSQL  
+---
+
+- “To improve learner engagement, we will integrate a real-time communication layer using Stream API.
+This enables AI-assisted doubt resolution, peer discussion, and teacher feedback.
+The AI model analyzes chat context to identify recurring misconceptions and update the learner’s knowledge graph.”
 
 ---
 
