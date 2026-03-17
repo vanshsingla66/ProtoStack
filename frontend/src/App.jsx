@@ -1,17 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-// import '../App.css'
-import LearningPlatform from './pages/LearningPlatform.jsx'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState } from "react";
+import LandingPage from "./pages/LandingPage";
+import SignInPage from "./pages/SignInPage";
+import RegisterPage from "./pages/RegisterPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import DashboardPage from "./pages/DashboardPage";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [user, setUser] = useState(null);
 
   return (
-    <>
-      <LearningPlatform />
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/signin" element={<SignInPage onAuth={setUser} />} />
+        <Route path="/register" element={<RegisterPage onAuth={setUser} />} />
+        <Route
+          path="/onboarding"
+          element={user ? <OnboardingPage user={user} /> : <Navigate to="/register" />}
+        />
+        <Route
+          path="/dashboard"
+          element={user ? <DashboardPage user={user} onSignOut={() => setUser(null)} /> : <Navigate to="/signin" />}
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App
