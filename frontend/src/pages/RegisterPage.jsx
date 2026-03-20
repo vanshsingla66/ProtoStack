@@ -10,6 +10,7 @@ export default function RegisterPage({ onAuth }) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -26,9 +27,32 @@ export default function RegisterPage({ onAuth }) {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    onAuth({ name: form.name, email: form.email });
-    navigate("/onboarding");
+    setApiError("");
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Could not create account.");
+      }
+
+      onAuth?.(data.user);
+      navigate("/onboarding");
+    } catch (error) {
+      setApiError(error?.message || "Registration failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,6 +137,7 @@ export default function RegisterPage({ onAuth }) {
                   </button>
                 </div>
                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+                {apiError && <p className="text-xs text-red-500 mt-1">{apiError}</p>}
               </div>
 
               <button

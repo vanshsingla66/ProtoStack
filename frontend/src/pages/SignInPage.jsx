@@ -15,12 +15,46 @@ export default function SignInPage({ onAuth }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) { setError("Please fill in all fields."); return; }
+    if (!form.email || !form.password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
     setError("");
     setLoading(true);
-    await new Promise(r => setTimeout(r, 900));
-    onAuth({ name: "Mayank Sharma", email: form.email });
-    navigate("/dashboard");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data?.message || "Login failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const user = data?.user;
+      if (!user) {
+        setError("Login succeeded but user data is unavailable.");
+        setLoading(false);
+        return;
+      }
+
+      onAuth({ name: user.fullName || user.email, email: user.email });
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login error", err);
+      setError("Unable to connect to server. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (

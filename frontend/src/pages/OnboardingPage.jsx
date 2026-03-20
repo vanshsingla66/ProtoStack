@@ -76,10 +76,73 @@ export default function OnboardingPage({ user }) {
     skills: d.skills.includes(s) ? d.skills.filter(x => x !== s) : [...d.skills, s]
   }));
 
+  const [parsedData, setParsedData] = useState(null);
+  const [onboardingError, setOnboardingError] = useState("");
+
+  const handleOnboarding = async (parsedResumePayload = null) => {
+    if (!user?._id) {
+      setOnboardingError("User is missing. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/onboard`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userId: user._id,
+          education: formData.education,
+          role: formData.role,
+          skills: formData.skills,
+          goal: formData.goal,
+          parsedResume: parsedResumePayload,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Could not save onboarding data.");
+      }
+
+      navigate("/dashboard");
+    } catch (err) {
+      setOnboardingError(err.message || "Onboarding failed.");
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
   const handleDone = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1100));
-    navigate("/dashboard");
+    setOnboardingError("");
+
+    if (tab === "upload" && file) {
+      const form = new FormData();
+      form.append("resume", file);
+      try {
+        const parserRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/parse-resume`, {
+          method: "POST",
+          body: form,
+        });
+
+        const parserData = await parserRes.json();
+        if (!parserRes.ok) {
+          throw new Error(parserData.message || "Resume parse failed.");
+        }
+        setParsedData(parserData.parsed);
+
+        await handleOnboarding(parserData.parsed);
+        return;
+      } catch (err) {
+        setOnboardingError(err.message || "Resume parsing failed");
+        setLoading(false);
+        return;
+      }
+    }
+
+    await handleOnboarding(null);
   };
 
   const stepContent = [
@@ -186,6 +249,7 @@ export default function OnboardingPage({ user }) {
           </div>
 
           <div className="border border-neutral-200 bg-white rounded-xl p-8">
+            {onboardingError && <p className="text-xs text-red-500 mb-3">{onboardingError}</p>}
             {tab === "upload" ? (
               <>
                 <DropZone onFile={setFile} file={file} />
