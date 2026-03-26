@@ -41,7 +41,16 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-
+        onboardingData: {
+            education: { type: String, default: "" },
+            role: { type: String, default: "" },
+            skills: { type: [String], default: [] },
+            goal: { type: String, default: "" },
+        },
+        parsedResume: {
+            type: Object,
+            default: {},
+        },
         friends:[
             {
                 type:mongoose.Schema.Types.ObjectId,
