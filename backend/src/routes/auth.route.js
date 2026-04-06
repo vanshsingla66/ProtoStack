@@ -1,14 +1,19 @@
 import express from "express";
-import multer from "multer";
-import { signup, login, logout, parseResume, onboard } from "../controllers/auth.controller.js";
+import {
+  signup,
+  login,
+  logout,
+  getMe
+} from "../controllers/user.controller.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-const upload = multer({ dest: "tmp" });
 
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
-router.post("/parse-resume", upload.single("resume"), parseResume);
-router.post("/onboard", onboard);
+
+// protected route
+router.get("/me", protect, getMe);
 
 export default router;
