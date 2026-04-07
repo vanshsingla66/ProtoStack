@@ -22,7 +22,7 @@ const fieldFade = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
 };
 
-export default function RegisterPage({ onAuth }) {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -30,6 +30,7 @@ export default function RegisterPage({ onAuth }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -47,6 +48,7 @@ export default function RegisterPage({ onAuth }) {
     if (!validate()) return;
     setLoading(true);
     setApiError("");
+    setSuccessMessage("");
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/signup`, {
@@ -65,8 +67,8 @@ export default function RegisterPage({ onAuth }) {
         throw new Error(data.message || "Could not create account.");
       }
 
-      onAuth?.(data.user);
-      navigate("/onboarding");
+      setSuccessMessage(data.message || "Account created. Check your email to verify your account.");
+      setForm({ name: "", email: "", password: "" });
     } catch (error) {
       setApiError(error?.message || "Registration failed.");
     } finally {
@@ -179,6 +181,7 @@ export default function RegisterPage({ onAuth }) {
                 </div>
                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
                 {apiError && <p className="text-xs text-red-500 mt-1">{apiError}</p>}
+                {successMessage && <p className="text-xs text-green-600 mt-1">{successMessage}</p>}
               </motion.div>
 
               <motion.button
@@ -207,6 +210,16 @@ export default function RegisterPage({ onAuth }) {
                 )}
               </motion.button>
             </motion.form>
+
+            {successMessage && (
+              <button
+                type="button"
+                onClick={() => navigate("/signin")}
+                className="mt-4 w-full h-10 rounded-xl text-sm font-semibold border border-blue-200 text-blue-700 hover:bg-blue-50 transition"
+              >
+                Go to Sign in
+              </button>
+            )}
 
             <Separator className="my-6" />
             <p className="text-center text-xs text-neutral-400">

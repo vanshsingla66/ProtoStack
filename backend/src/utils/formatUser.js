@@ -9,6 +9,7 @@ export const formatUser = (user) => {
     profilePic: user.profilePic,
     role: user.onboardingData?.role || "Student",
     isOnboarded: user.isOnboarded,
+    isEmailVerified: Boolean(user.isEmailVerified),
 
     // ✅ Only ONE source
     profileData: isResumeBased
