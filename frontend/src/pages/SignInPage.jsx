@@ -30,9 +30,40 @@ export default function SignInPage({ onAuth }) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 80);
+
+    const params = new URLSearchParams(window.location.search);
+    const verifyToken = params.get("verifyToken");
+
+    if (!verifyToken) {
+      return;
+    }
+
+    const verifyEmail = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/verify-email?token=${verifyToken}`
+        );
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Unable to verify email");
+        }
+
+        setInfo(data.message || "Email verified. You can login now.");
+      } catch (verifyError) {
+        setError(verifyError.message || "Unable to verify email");
+      } finally {
+        window.history.replaceState({}, "", "/signin");
+      }
+    };
+
+    verifyEmail();
   }, []);
 
   // ================= HANDLE CHANGE =================
@@ -41,6 +72,42 @@ export default function SignInPage({ onAuth }) {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const handleResendVerification = async () => {
+    if (!form.email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    setError("");
+    setInfo("");
+    setResendLoading(true);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/resend-verification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: form.email }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Unable to resend verification email");
+      }
+
+      setInfo(data.message || "Verification email sent. Please check your inbox.");
+    } catch (resendError) {
+      setError(resendError.message || "Unable to resend verification email");
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   // ================= SUBMIT =================
@@ -52,6 +119,7 @@ export default function SignInPage({ onAuth }) {
     }
 
     setError("");
+    setErrorCode("");
     setLoading(true);
 
     try {
@@ -72,7 +140,9 @@ export default function SignInPage({ onAuth }) {
       console.log("LOGIN RESPONSE:", data); // 🔥 debug
 
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        const loginError = new Error(data.message || "Login failed");
+        loginError.code = data.code;
+        throw loginError;
       }
 
       // ✅ IMPORTANT: use backend formatted user
@@ -82,7 +152,9 @@ export default function SignInPage({ onAuth }) {
 
     } catch (err) {
       console.error("Login error:", err);
+      setErrorCode(err.code || "");
       setError(err.message || "Unable to login");
+      setInfo("");
     } finally {
       setLoading(false);
     }
@@ -223,6 +295,31 @@ export default function SignInPage({ onAuth }) {
                   transition={{ duration: 0.35 }}
                 >
                   {error}
+                </motion.p>
+              )}
+
+              {errorCode === "EMAIL_NOT_VERIFIED" && (
+                <motion.button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendLoading}
+                  className="w-full h-10 rounded-xl text-sm font-semibold border border-blue-200 text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.985 }}
+                >
+                  {resendLoading ? "Sending verification email..." : "Resend verification email"}
+                </motion.button>
+              )}
+
+              {info && (
+                <motion.p
+                  className="text-xs text-emerald-600"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {info}
                 </motion.p>
               )}
 

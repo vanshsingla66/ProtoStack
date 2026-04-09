@@ -1,20 +1,38 @@
 import { generateToken } from "../utils/generateToken.js";
 import { formatUser } from "../utils/formatUser.js";
 
-import { createUser, loginUser } from "../services/auth.service.js";
+import {
+  createUser,
+  loginUser,
+  resendVerificationEmail,
+  verifyEmailToken,
+} from "../services/auth.service.js";
 import { onboardUserService } from "../services/user.service.js";
 import { parseResumeService } from "../services/resume.service.js";
 
 // SIGNUP
 export const signup = async (req, res) => {
   try {
-    const user = await createUser(req.body);
-
-    generateToken(res, user._id);
+    await createUser(req.body);
 
     res.status(201).json({
       success: true,
-      user: formatUser(user),
+      message: "Signup successful. Please verify your email to continue.",
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+// VERIFY EMAIL
+export const verifyEmail = async (req, res) => {
+  try {
+    const token = req.query.token;
+    await verifyEmailToken(token);
+
+    res.json({
+      success: true,
+      message: "Email verified successfully. You can now login.",
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -33,7 +51,24 @@ export const login = async (req, res) => {
       user: formatUser(user),
     });
   } catch (err) {
-    res.status(401).json({ message: err.message });
+    res.status(err.statusCode || 401).json({
+      message: err.message,
+      code: err.code,
+    });
+  }
+};
+
+// RESEND VERIFICATION EMAIL
+export const resendVerification = async (req, res) => {
+  try {
+    const result = await resendVerificationEmail(req.body.email);
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
