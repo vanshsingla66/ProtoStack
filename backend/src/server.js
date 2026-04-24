@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
+import path from "path";
 
 // Security
 import helmet from "helmet";
@@ -15,6 +16,8 @@ import { connectDB } from "./lib/db.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+const __dirname = path.resolve();
 
 // ================= SECURITY =================
 
@@ -44,6 +47,14 @@ app.use(cookieParser());
 
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
+
+if(process.env.NODE_ENV === "production"){
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("*", (req,res) => {
+    res.sendFile(path.join(__dirname,"../frontend/dist/index.html"));
+  })
+}
 
 // Health check route
 app.get("/", (req, res) => {
