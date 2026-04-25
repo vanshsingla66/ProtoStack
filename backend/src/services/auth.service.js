@@ -1,45 +1,42 @@
 import User from "../models/User.js";
 import crypto from "crypto";
-import { sendVerificationEmail } from "../lib/resend.js";
+import { sendVerificationEmail } from "../lib/mailer.js";
 
-const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const VERIFICATION_OTP_TTL_MS = 10 * 60 * 1000;
 
-const createVerificationToken = () => {
-  const verificationToken = crypto.randomBytes(32).toString("hex");
-  const verificationTokenHash = crypto
+const createVerificationOtp = () => {
+  const verificationOtp = crypto.randomInt(100000, 1000000).toString();
+  const verificationOtpHash = crypto
     .createHash("sha256")
-    .update(verificationToken)
+    .update(verificationOtp)
     .digest("hex");
 
   return {
-    verificationToken,
-    verificationTokenHash,
-    verificationTokenExpiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+    verificationOtp,
+    verificationOtpHash,
+    verificationOtpExpiresAt: new Date(Date.now() + VERIFICATION_OTP_TTL_MS),
   };
 };
 
 const issueVerificationEmail = async (user) => {
   const {
-    verificationToken,
-    verificationTokenHash,
-    verificationTokenExpiresAt,
-  } = createVerificationToken();
+    verificationOtp,
+    verificationOtpHash,
+    verificationOtpExpiresAt,
+  } = createVerificationOtp();
 
-  user.emailVerificationToken = verificationTokenHash;
-  user.emailVerificationTokenExpiresAt = verificationTokenExpiresAt;
+  user.emailVerificationOtp = verificationOtpHash;
+  user.emailVerificationOtpExpiresAt = verificationOtpExpiresAt;
 
   await user.save();
-
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-  const verificationUrl = `${frontendUrl}/signin?verifyToken=${verificationToken}`;
 
   await sendVerificationEmail({
     to: user.email,
     fullName: user.fullName,
-    verificationUrl,
+    otp: verificationOtp,
   });
 
-  return verificationToken;
+  return verificationOtp;
 };
 
 // ================= CREATE USER =================
@@ -48,11 +45,10 @@ export const createUser = async ({ email, password, fullName }) => {
 
   let user = await User.findOne({ email: normalizedEmail });
 
-  // 🔥 If user exists but NOT verified → resend instead of blocking
   if (user && !user.isEmailVerified) {
     await issueVerificationEmail(user);
 
-    throw new Error("Verification email resent. Please check your inbox.");
+    throw new Error("Verification code resent. Please check your inbox.");
   }
 
   // ❌ If verified user exists → block
@@ -75,7 +71,7 @@ export const createUser = async ({ email, password, fullName }) => {
 
     await User.deleteOne({ _id: user._id });
 
-    throw new Error("Unable to send verification email.");
+    throw new Error("Unable to send verification code.");
   }
 
   return user;
@@ -94,14 +90,14 @@ export const resendVerificationEmail = async (email) => {
   if (!user || user.isEmailVerified) {
     return {
       message:
-        "If your account exists and is unverified, a verification email has been sent.",
+        "If your account exists and is unverified, a verification code has been sent.",
     };
   }
 
   await issueVerificationEmail(user);
 
   return {
-    message: "Verification email resent. Please check your inbox.",
+    message: "Verification code resent. Please check your inbox.",
   };
 };
 
@@ -126,25 +122,28 @@ export const loginUser = async ({ email, password }) => {
 };
 
 // ================= VERIFY EMAIL =================
-export const verifyEmailToken = async (token) => {
-  if (!token) {
-    throw new Error("Verification token is required");
+export const verifyEmailOtp = async ({ email, otp }) => {
+  const normalizedEmail = email?.trim().toLowerCase();
+
+  if (!normalizedEmail || !otp) {
+    throw new Error("Email and verification code are required");
   }
 
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const otpHash = crypto.createHash("sha256").update(String(otp).trim()).digest("hex");
 
   const user = await User.findOne({
-    emailVerificationToken: tokenHash,
-    emailVerificationTokenExpiresAt: { $gt: new Date() },
+    email: normalizedEmail,
+    emailVerificationOtp: otpHash,
+    emailVerificationOtpExpiresAt: { $gt: new Date() },
   });
 
   if (!user) {
-    throw new Error("Invalid or expired verification token");
+    throw new Error("Invalid or expired verification code");
   }
 
   user.isEmailVerified = true;
-  user.emailVerificationToken = "";
-  user.emailVerificationTokenExpiresAt = undefined;
+  user.emailVerificationOtp = "";
+  user.emailVerificationOtpExpiresAt = undefined;
 
   await user.save();
 

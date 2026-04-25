@@ -26,11 +26,18 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [showOtpBox, setShowOtpBox] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [verifyInfo, setVerifyInfo] = useState("");
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -49,6 +56,9 @@ export default function RegisterPage() {
     setLoading(true);
     setApiError("");
     setSuccessMessage("");
+    setVerifyError("");
+    setVerifyInfo("");
+    setShowOtpBox(false);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/signup`, {
@@ -67,12 +77,85 @@ export default function RegisterPage() {
         throw new Error(data.message || "Could not create account.");
       }
 
-      setSuccessMessage(data.message || "Account created. Check your email to verify your account.");
+      setSuccessMessage(data.message || "Account created. Check your email for the verification code.");
+      setVerificationEmail(form.email);
+      setShowOtpBox(true);
       setForm({ name: "", email: "", password: "" });
     } catch (error) {
       setApiError(error?.message || "Registration failed.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getVerificationTargetEmail = () => verificationEmail;
+
+  const handleVerifyEmail = async () => {
+    const targetEmail = getVerificationTargetEmail();
+
+    if (!targetEmail || verificationCode.length !== 6) {
+      setVerifyError("Please enter your email and a 6-digit verification code.");
+      return;
+    }
+
+    setVerifyError("");
+    setVerifyInfo("");
+    setVerifyLoading(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/verify-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: targetEmail,
+          otp: verificationCode,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to verify email.");
+      }
+
+      setVerifyInfo(data.message || "Email verified. You can now sign in.");
+      setVerifyError("");
+      setVerificationCode("");
+    } catch (error) {
+      setVerifyError(error?.message || "Unable to verify email.");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const targetEmail = getVerificationTargetEmail();
+
+    if (!targetEmail) {
+      setVerifyError("Please enter your email first.");
+      return;
+    }
+
+    setVerifyError("");
+    setVerifyInfo("");
+    setResendLoading(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: targetEmail }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to resend verification code.");
+      }
+
+      setVerifyInfo(data.message || "Verification code sent. Please check your inbox.");
+    } catch (error) {
+      setVerifyError(error?.message || "Unable to resend verification code.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -209,6 +292,50 @@ export default function RegisterPage() {
                   </>
                 )}
               </motion.button>
+
+              {showOtpBox && (
+                <motion.div
+                  className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-3"
+                  variants={fieldFade}
+                >
+                  <p className="text-xs font-medium text-blue-900">
+                    Enter the 6-digit code we sent to {getVerificationTargetEmail() || "your email"}.
+                  </p>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    className="w-full border border-blue-200 rounded-xl px-4 h-11 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition bg-white placeholder:text-neutral-300 tracking-[0.35em] text-center"
+                  />
+
+                  {verifyError && <p className="text-xs text-red-500">{verifyError}</p>}
+                  {verifyInfo && <p className="text-xs text-emerald-600">{verifyInfo}</p>}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <motion.button
+                      type="button"
+                      onClick={handleVerifyEmail}
+                      disabled={verifyLoading}
+                      className="w-full h-10 rounded-xl text-sm font-semibold bg-blue-700 text-white hover:bg-blue-600 transition disabled:opacity-60"
+                      whileTap={{ scale: 0.985 }}
+                    >
+                      {verifyLoading ? "Verifying..." : "Verify code"}
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="w-full h-10 rounded-xl text-sm font-semibold border border-blue-200 text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                      whileTap={{ scale: 0.985 }}
+                    >
+                      {resendLoading ? "Sending code..." : "Resend code"}
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
             </motion.form>
 
             {successMessage && (
