@@ -21,11 +21,11 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        emailVerificationToken: {
+        emailVerificationOtp: {
             type: String,
             default: "",
         },
-        emailVerificationTokenExpiresAt: {
+        emailVerificationOtpExpiresAt: {
             type: Date,
         },
         bio:{

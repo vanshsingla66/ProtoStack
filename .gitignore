@@ -1,6 +1,8 @@
 # Env files (anywhere)
 backend/node_modules
 frontend/node_modules
+**/venv
+ml_models/resume_parser/venv
 .env
 **/.env
 

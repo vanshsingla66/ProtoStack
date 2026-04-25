@@ -5,7 +5,7 @@ import {
   createUser,
   loginUser,
   resendVerificationEmail,
-  verifyEmailToken,
+  verifyEmailOtp,
 } from "../services/auth.service.js";
 import { onboardUserService } from "../services/user.service.js";
 import { parseResumeService } from "../services/resume.service.js";
@@ -27,12 +27,14 @@ export const signup = async (req, res) => {
 // VERIFY EMAIL
 export const verifyEmail = async (req, res) => {
   try {
-    const token = req.query.token;
-    await verifyEmailToken(token);
+    const email = req.body?.email || req.query?.email;
+    const otp = req.body?.otp || req.query?.otp;
+
+    await verifyEmailOtp({ email, otp });
 
     res.json({
       success: true,
-      message: "Email verified successfully. You can now login.",
+      message: "Email verified successfully. You can now log in.",
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
