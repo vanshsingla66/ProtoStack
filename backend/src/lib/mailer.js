@@ -1,4 +1,7 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const getTransporter = () => {
   const host = process.env.SMTP_HOST;
@@ -11,43 +14,37 @@ const getTransporter = () => {
     throw new Error("SMTP is not configured properly");
   }
 
-  const secure =
-    process.env.SMTP_SECURE === "true" || process.env.SMTP_SECURE === "1" || port === 465;
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: false, // important for 587
+    requireTLS: true,
+    auth: {
+      user,
+      pass,
+    },
+  });
 
-  return {
-    transporter: nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: {
-        user,
-        pass,
-      },
-    }),
-    from,
-  };
+  // Debug check
+  transporter.verify((err) => {
+    if (err) {
+      console.error("SMTP ERROR:", err);
+    } else {
+      console.log("SMTP READY");
+    }
+  });
+
+  return { transporter, from };
 };
 
 export const sendVerificationEmail = async ({ to, fullName, otp }) => {
   const { transporter, from } = getTransporter();
 
-  const subject = "Verify your ProtoStack account";
-  const text = `Hi ${fullName}, your verification code is ${otp}. It expires in 10 minutes.`;
-
   return transporter.sendMail({
     from,
     to,
-    subject,
-    text,
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #0f172a;">
-        <h2 style="margin: 0 0 12px;">Verify your email</h2>
-        <p style="margin: 0 0 16px;">Hi ${fullName}, use the code below to verify your ProtoStack account.</p>
-        <div style="display: inline-block; padding: 14px 20px; border-radius: 12px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 28px; font-weight: 700; letter-spacing: 0.2em;">
-          ${otp}
-        </div>
-        <p style="margin: 16px 0 0; font-size: 14px; color: #475569;">This code expires in 10 minutes.</p>
-      </div>
-    `,
+    subject: "Verify your ProtoStack account",
+    text: `Hi ${fullName}, your OTP is ${otp}`,
+    html: `<h2>Hi ${fullName}</h2><p>Your OTP: <b>${otp}</b></p>`,
   });
 };
