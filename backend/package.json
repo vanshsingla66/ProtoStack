@@ -23,8 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "multer": "^2.1.1",
-    "pdfplumber": "^0.0.1-security",
     "nodemailer": "^6.10.1",
+    "pdfplumber": "^0.0.1-security",
     "stream-chat": "^8.60.0"
   },
   "devDependencies": {
