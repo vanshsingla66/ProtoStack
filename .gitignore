@@ -2,7 +2,8 @@
 backend/node_modules
 frontend/node_modules
 **/venv
-ml_models/resume_parser/venv
+ml_models/resume-parser/venv
+ml_models/roadmap-generator/venv
 .env
 **/.env
 
