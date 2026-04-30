@@ -30,7 +30,20 @@ export const verifyEmail = async (req, res) => {
     const email = req.body?.email || req.query?.email;
     const otp = req.body?.otp || req.query?.otp;
 
-    await verifyEmailOtp({ email, otp });
+    const user = await verifyEmailOtp({ email, otp });
+
+    // Issue JWT so frontend can auto-login via /api/auth/me
+    try {
+      generateToken(res, user._id);
+    } catch (e) {
+      console.error('Token generation failed after email verify:', e);
+    }
+
+    // If verification was triggered via GET (email link), redirect to frontend onboarding
+    if (req.method === "GET") {
+      const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+      return res.redirect(`${frontend}/onboarding`);
+    }
 
     res.json({
       success: true,
