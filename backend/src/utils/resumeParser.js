@@ -5,9 +5,13 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const resumeParserScript = path.resolve(
-  __dirname,
-  "../../../ml_models/resume-parser/parse_cli.py"
+// const resumeParserScript = path.resolve(
+//   __dirname,
+//   "../../../ml_models/resume-parser/parse_cli.py"
+// );
+const resumeParserScript = path.join(
+  process.cwd(),
+  "ml_models/resume-parser/parse_cli.py"
 );
 
 export const runResumeParser = (resumeSource) => {
