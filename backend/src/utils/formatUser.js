@@ -6,6 +6,10 @@ export const formatUser = (user) => {
     _id: user._id,
     name: user.fullName,
     email: user.email,
+    bio: user.bio || "",
+    location: user.location || "",
+    nativeLanguage: user.nativeLanguage || "",
+    learningLanguage: user.learningLanguage || "",
     profilePic: user.profilePic,
     role: user.onboardingData?.role || "Student",
     isOnboarded: user.isOnboarded,
@@ -18,5 +22,6 @@ export const formatUser = (user) => {
 
     // Optional (debug only)
     source: isResumeBased ? "resume" : "form",
+    settings: user.settings || { theme: "system", emailNotifications: true, profileVisibility: "public" },
   };
 };

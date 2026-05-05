@@ -9,6 +9,7 @@ import {
   getMe,
   onboard,
   parseResume,
+  updateProfile,
 } from "../controllers/user.controller.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -42,5 +43,6 @@ router.post("/parse-resume", upload.single("resume"), parseResume);
 
 // protected route
 router.get("/me", protect, getMe);
+router.patch("/me", protect, updateProfile);
 
 export default router;
