@@ -305,7 +305,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
           <motion.div className="flex items-center gap-2 font-bold text-xl" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
             <div className="w-2 h-2 bg-emerald-600 rounded-full" />
-            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">ProtoStack</span>
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">LearnForge</span>
           </motion.div>
 
 
