@@ -7,7 +7,7 @@ import {
   resendVerificationEmail,
   verifyEmailOtp,
 } from "../services/auth.service.js";
-import { onboardUserService } from "../services/user.service.js";
+import { onboardUserService, updateProfileService } from "../services/user.service.js";
 import { parseResumeService } from "../services/resume.service.js";
 
 // SIGNUP
@@ -118,4 +118,18 @@ export const getMe = (req, res) => {
     success: true,
     user: formatUser(req.user),
   });
+};
+
+// UPDATE PROFILE
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await updateProfileService(req.user?._id, req.body);
+
+    res.json({
+      success: true,
+      user: formatUser(user),
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 };

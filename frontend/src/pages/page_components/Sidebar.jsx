@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Map,
   Bot,
+  FileText,
   User,
   Settings,
   LogOut,
@@ -13,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const NAV = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Map, label: "Roadmap", path: "/roadmap" },
+  { icon: FileText, label: "Resume Analyser", path: "/resume-analyser" },
   { icon: Bot, label: "AI Interview", path: "/ai-interview" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },

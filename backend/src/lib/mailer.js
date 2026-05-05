@@ -18,7 +18,7 @@ const getTransporter = () => {
     host,
     port,
     secure: false, // important for 587
-    requireTLS: true,
+    requireTLS: false,
     auth: {
       user,
       pass,

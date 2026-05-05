@@ -62,6 +62,11 @@ const userSchema = new mongoose.Schema(
             type: Object,
             default: {},
         },
+        settings: {
+            theme: { type: String, default: "system" },
+            emailNotifications: { type: Boolean, default: true },
+            profileVisibility: { type: String, default: "public" },
+        },
         friends:[
             {
                 type:mongoose.Schema.Types.ObjectId,
