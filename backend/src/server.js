@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 
 // Routes
 import authRoutes from "./routes/auth.route.js";
+import roadmapRoutes from "./routes/roadmap.route.js";
 
 // DB
 import { connectDB } from "./lib/db.js";
@@ -47,6 +48,7 @@ app.use(cookieParser());
 
 // ================= ROUTES =================
 app.use("/api/auth", authRoutes);
+app.use("/api/roadmaps", roadmapRoutes);
 
 if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname, "../frontend/dist")));

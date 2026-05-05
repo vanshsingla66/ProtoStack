@@ -101,7 +101,7 @@ export default function App() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage user={user} />} />
-          <Route path="/roadmap" element={<RoadmapPage />} />
+          <Route path="/roadmap" element={<RoadmapPage user={user} />} />
           <Route path="/resume-analyser" element={<ResumeAnalyzerPage user={user} onUserUpdate={setUser} />} />
           <Route path="/ai-interview" element={<div>AI Interview 🤖</div>} />
           <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
