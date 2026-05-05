@@ -22,7 +22,7 @@ const fieldFade = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
 };
 
-export default function RegisterPage({ onAuth }) {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -115,22 +115,6 @@ export default function RegisterPage({ onAuth }) {
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Unable to verify email.");
-      }
-
-      // Email verified on backend; backend also issues JWT cookie.
-      // Fetch current user and notify App via onAuth, then navigate to onboarding.
-      try {
-        const meRes = await fetch(`${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/me`, {
-          credentials: "include",
-        });
-        const meData = await meRes.json();
-        if (meRes.ok) {
-          onAuth && onAuth(meData.user);
-          navigate("/onboarding");
-          return;
-        }
-      } catch (e) {
-        console.error('Auto-login after verify failed', e);
       }
 
       setVerifyInfo(data.message || "Email verified. You can now sign in.");

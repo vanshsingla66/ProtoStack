@@ -25,11 +25,6 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
-        emailVerificationOtpIssuedAt: {
-            type: Date,
-            default: null,
-        },
-
         emailVerificationOtpExpiresAt: {
             type: Date,
         },

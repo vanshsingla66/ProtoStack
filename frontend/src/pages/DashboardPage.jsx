@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   ChevronRight, Clock, Star, ArrowUpRight
 } from "lucide-react";
-//m
+
 const COURSES = [
   { id: 1, title: "Full-Stack Development", sub: "React · Node.js · PostgreSQL", duration: "42h", rating: 4.9, level: "Intermediate", progress: 68 },
   { id: 2, title: "UI/UX Design Systems", sub: "Figma · Design Tokens · A11y", duration: "28h", rating: 4.8, level: "Advanced", progress: 34 },
