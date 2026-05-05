@@ -10,6 +10,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 // Dashboard Pages
 import DashboardPage from "./pages/DashboardPage";
 import RoadmapPage from "./pages/RoadmapPage";
+import AIInterviewPage from "./pages/AIInterviewPage";
 import ProfilePage from "./pages/ProfilePage";
 import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -103,7 +104,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage user={user} />} />
           <Route path="/roadmap" element={<RoadmapPage user={user} />} />
           <Route path="/resume-analyser" element={<ResumeAnalyzerPage user={user} onUserUpdate={setUser} />} />
-          <Route path="/ai-interview" element={<div>AI Interview 🤖</div>} />
+          <Route path="/ai-interview" element={<AIInterviewPage user={user} />} />
           <Route path="/profile" element={<ProfilePage user={user} onUserUpdate={setUser} />} />
           <Route path="/settings" element={<SettingsPage user={user} onUserUpdate={setUser} />} />
         </Route>
