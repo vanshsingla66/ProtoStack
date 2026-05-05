@@ -9,9 +9,17 @@ const __dirname = path.dirname(__filename);
 //   __dirname,
 //   "../../../ml_models/resume-parser/parse_cli.py"
 // );
+// const resumeParserScript = path.join(
+//   process.cwd(),
+//   "ml_models/resume-parser/parse_cli.py"
+// );
+
 const resumeParserScript = path.join(
   process.cwd(),
-  "ml_models/resume-parser/parse_cli.py"
+  "..",
+  "ml_models",
+  "resume-parser",
+  "parse_cli.py"
 );
 
 export const runResumeParser = (resumeSource) => {
