@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "../lib/mailer.js";
 
 const VERIFICATION_OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const RESEND_COOLDOWN_MS = 60 * 1000; // 1 minute
+const RESEND_COOLDOWN_MS = 60 * 1000;            // 1 minute
 
 // ================= OTP GENERATION =================
 const createVerificationOtp = () => {
@@ -18,19 +18,18 @@ const createVerificationOtp = () => {
     verificationOtp,
     verificationOtpHash,
     verificationOtpExpiresAt: new Date(Date.now() + VERIFICATION_OTP_TTL_MS),
+    verificationOtpIssuedAt: new Date(), // ← explicit issuedAt
   };
 };
 
 // ================= ISSUE EMAIL =================
 const issueVerificationEmail = async (user) => {
-  // ⛔ Prevent spam resend (cooldown)
-  if (user.emailVerificationOtpExpiresAt) {
-    const lastIssuedTime =
-      new Date(user.emailVerificationOtpExpiresAt).getTime() -
-      VERIFICATION_OTP_TTL_MS;
-
-    if (Date.now() - lastIssuedTime < RESEND_COOLDOWN_MS) {
-      throw new Error("Please wait before requesting another code");
+  // Cooldown check using explicit issuedAt
+  if (user.emailVerificationOtpIssuedAt) {
+    const elapsed = Date.now() - new Date(user.emailVerificationOtpIssuedAt).getTime();
+    if (elapsed < RESEND_COOLDOWN_MS) {
+      const secondsLeft = Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000);
+      throw new Error(`Please wait ${secondsLeft}s before requesting another code`);
     }
   }
 
@@ -38,23 +37,21 @@ const issueVerificationEmail = async (user) => {
     verificationOtp,
     verificationOtpHash,
     verificationOtpExpiresAt,
+    verificationOtpIssuedAt,
   } = createVerificationOtp();
 
   user.emailVerificationOtp = verificationOtpHash;
   user.emailVerificationOtpExpiresAt = verificationOtpExpiresAt;
+  user.emailVerificationOtpIssuedAt = verificationOtpIssuedAt;
 
   await user.save();
 
-  // ✅ Send email in background (DO NOT await)
-  sendVerificationEmail({
+  // ✅ Awaited — failures surface immediately
+  await sendVerificationEmail({
     to: user.email,
     fullName: user.fullName,
     otp: verificationOtp,
-  }).catch((err) => {
-    console.error("EMAIL ERROR:", err);
   });
-
-  return verificationOtp;
 };
 
 // ================= CREATE USER =================
@@ -67,19 +64,18 @@ export const createUser = async ({ email, password, fullName }) => {
 
   let user = await User.findOne({ email: normalizedEmail });
 
-  // 🔁 If exists but not verified → resend OTP
+  // Exists but not verified → resend OTP
   if (user && !user.isEmailVerified) {
     await issueVerificationEmail(user);
-
     throw new Error("Verification code resent. Please check your inbox.");
   }
 
-  // ❌ If verified user exists
+  // Verified user already exists
   if (user && user.isEmailVerified) {
     throw new Error("Email already exists");
   }
 
-  // 🆕 Create new user
+  // Create new user
   user = await User.create({
     email: normalizedEmail,
     password,
@@ -87,7 +83,6 @@ export const createUser = async ({ email, password, fullName }) => {
     isEmailVerified: false,
   });
 
-  // ✅ Send verification email (non-blocking)
   await issueVerificationEmail(user);
 
   return user;
@@ -103,11 +98,10 @@ export const resendVerificationEmail = async (email) => {
 
   const user = await User.findOne({ email: normalizedEmail });
 
-  // 🔒 Prevent account enumeration
+  // Prevent account enumeration
   if (!user || user.isEmailVerified) {
     return {
-      message:
-        "If your account exists and is unverified, a verification code has been sent.",
+      message: "If your account exists and is unverified, a verification code has been sent.",
     };
   }
 
@@ -164,6 +158,7 @@ export const verifyEmailOtp = async ({ email, otp }) => {
   user.isEmailVerified = true;
   user.emailVerificationOtp = "";
   user.emailVerificationOtpExpiresAt = undefined;
+  user.emailVerificationOtpIssuedAt = undefined; // clean up
 
   await user.save();
 

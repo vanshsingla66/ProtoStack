@@ -39,15 +39,19 @@ const transporter = nodemailer.createTransport({
 export const sendVerificationEmail = async ({ to, fullName, otp }) => {
   try {
     const info = await transporter.sendMail({
-      from: user, // ⚠️ IMPORTANT: use SMTP user for testing
-      to,
-      subject: "Verify your ProtoStack account",
-      text: `Hi ${fullName}, your OTP is ${otp}`,
-      html: `
-        <h2>Hi ${fullName}</h2>
-        <p>Your OTP: <b>${otp}</b></p>
-      `,
-    });
+    from,
+    to,
+    subject: "Verify your ProtoStack account",
+    text: `Hi ${fullName}, your verification OTP is ${otp}. It expires in 10 minutes.`,
+    html: `
+      <div style="font-family:sans-serif; max-width:480px; margin:auto;">
+        <h2>Hi ${fullName},</h2>
+        <p>Use the OTP below to verify your <strong>ProtoStack</strong> account:</p>
+        <p style="font-size:32px; letter-spacing:6px; font-weight:bold; color:#4F46E5;">${otp}</p>
+        <p style="color:#888; font-size:12px;">This OTP expires in 10 minutes. Do not share it with anyone.</p>
+      </div>
+    `,
+  });
 
     console.log("EMAIL RESPONSE:", info);
     return info;
