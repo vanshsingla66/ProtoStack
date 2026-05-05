@@ -3,60 +3,48 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const host = process.env.SMTP_HOST;
-const port = Number(process.env.SMTP_PORT);
-const user = process.env.SMTP_USER;
-const pass = process.env.SMTP_PASS;
-const from = process.env.SMTP_FROM;
+const getTransporter = () => {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM;
 
-if (!host || !port || !user || !pass || !from) {
-  throw new Error("SMTP is not configured properly");
-}
-
-// ✅ Create transporter ONCE
-const transporter = nodemailer.createTransport({
-  host,
-  port,
-  secure: port === 465, // correct handling
-  auth: {
-    user,
-    pass,
-  },
-  connectionTimeout: 10000,
-  socketTimeout: 10000,
-});
-
-// ✅ Verify ONCE (startup only)
-(async () => {
-  try {
-    await transporter.verify();
-    console.log("✅ SMTP READY");
-  } catch (err) {
-    console.error("❌ SMTP ERROR:", err);
+  if (!host || !port || !user || !pass || !from) {
+    throw new Error("SMTP is not configured properly");
   }
-})();
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: false, // important for 587
+    requireTLS: true,
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  // Debug check
+  transporter.verify((err) => {
+    if (err) {
+      console.error("SMTP ERROR:", err);
+    } else {
+      console.log("SMTP READY");
+    }
+  });
+
+  return { transporter, from };
+};
 
 export const sendVerificationEmail = async ({ to, fullName, otp }) => {
-  try {
-    const info = await transporter.sendMail({
+  const { transporter, from } = getTransporter();
+
+  return transporter.sendMail({
     from,
     to,
     subject: "Verify your ProtoStack account",
-    text: `Hi ${fullName}, your verification OTP is ${otp}. It expires in 10 minutes.`,
-    html: `
-      <div style="font-family:sans-serif; max-width:480px; margin:auto;">
-        <h2>Hi ${fullName},</h2>
-        <p>Use the OTP below to verify your <strong>ProtoStack</strong> account:</p>
-        <p style="font-size:32px; letter-spacing:6px; font-weight:bold; color:#4F46E5;">${otp}</p>
-        <p style="color:#888; font-size:12px;">This OTP expires in 10 minutes. Do not share it with anyone.</p>
-      </div>
-    `,
+    text: `Hi ${fullName}, your OTP is ${otp}`,
+    html: `<h2>Hi ${fullName}</h2><p>Your OTP: <b>${otp}</b></p>`,
   });
-
-    console.log("EMAIL RESPONSE:", info);
-    return info;
-  } catch (err) {
-    console.error("EMAIL SEND ERROR:", err);
-    throw err;
-  }
 };
