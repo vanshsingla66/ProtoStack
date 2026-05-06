@@ -14,6 +14,11 @@ This project aims to solve this problem using **AI-driven personalization** to d
 
 ---
 
+## 🚀 Live Demo:
+👉 : https://protostack-pumj.onrender.com/
+
+---
+
 ## ❗ Problem Statement
 - One-size-fits-all education model  
 - No early detection of learning gaps  
