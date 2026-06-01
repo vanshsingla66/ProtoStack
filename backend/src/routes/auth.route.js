@@ -3,8 +3,6 @@ import multer from "multer";
 import {
   signup,
   login,
-  verifyEmail,
-  resendVerification,
   logout,
   getMe,
   onboard,
@@ -34,9 +32,6 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
-router.post("/verify-email", verifyEmail);
-router.get("/verify-email", verifyEmail);
-router.post("/resend-verification", resendVerification);
 router.post("/logout", logout);
 router.post("/onboard", protect, onboard);
 router.post("/parse-resume", upload.single("resume"), parseResume);

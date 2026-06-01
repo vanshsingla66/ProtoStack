@@ -4,8 +4,6 @@ import { formatUser } from "../utils/formatUser.js";
 import {
   createUser,
   loginUser,
-  resendVerificationEmail,
-  verifyEmailOtp,
 } from "../services/auth.service.js";
 import { onboardUserService, updateProfileService } from "../services/user.service.js";
 import { parseResumeService } from "../services/resume.service.js";
@@ -13,28 +11,14 @@ import { parseResumeService } from "../services/resume.service.js";
 // SIGNUP
 export const signup = async (req, res) => {
   try {
-    await createUser(req.body);
+    const user = await createUser(req.body);
+
+    generateToken(res, user._id);
 
     res.status(201).json({
       success: true,
-      message: "Signup successful. Please verify your email to continue.",
-    });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-// VERIFY EMAIL
-export const verifyEmail = async (req, res) => {
-  try {
-    const email = req.body?.email || req.query?.email;
-    const otp = req.body?.otp || req.query?.otp;
-
-    await verifyEmailOtp({ email, otp });
-
-    res.json({
-      success: true,
-      message: "Email verified successfully. You can now log in.",
+      user: formatUser(user),
+      message: "Signup successful.",
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -57,20 +41,6 @@ export const login = async (req, res) => {
       message: err.message,
       code: err.code,
     });
-  }
-};
-
-// RESEND VERIFICATION EMAIL
-export const resendVerification = async (req, res) => {
-  try {
-    const result = await resendVerificationEmail(req.body.email);
-
-    res.json({
-      success: true,
-      message: result.message,
-    });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
   }
 };
 

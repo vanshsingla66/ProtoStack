@@ -27,14 +27,10 @@ export default function SignInPage({ onAuth }) {
 
   const [visible, setVisible] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
-  const [verificationCode, setVerificationCode] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [verifyLoading, setVerifyLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  const [errorCode, setErrorCode] = useState("");
-  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 80);
@@ -48,83 +44,6 @@ export default function SignInPage({ onAuth }) {
     }));
   };
 
-  const handleResendVerification = async () => {
-    if (!form.email) {
-      setError("Please enter your email address first.");
-      return;
-    }
-
-    setError("");
-    setInfo("");
-    setResendLoading(true);
-
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/resend-verification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: form.email }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Unable to resend verification code");
-      }
-
-      setInfo(data.message || "Verification code sent. Please check your inbox.");
-    } catch (resendError) {
-      setError(resendError.message || "Unable to resend verification code");
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  const handleVerifyEmail = async () => {
-    if (!form.email || !verificationCode) {
-      setError("Please enter your email and verification code.");
-      return;
-    }
-
-    setError("");
-    setInfo("");
-    setVerifyLoading(true);
-
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || ""}/api/auth/verify-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: form.email,
-            otp: verificationCode,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Unable to verify email");
-      }
-
-      setInfo(data.message || "Email verified. You can now sign in.");
-      setErrorCode("");
-      setVerificationCode("");
-    } catch (verifyError) {
-      setError(verifyError.message || "Unable to verify email");
-    } finally {
-      setVerifyLoading(false);
-    }
-  };
-
   // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,7 +53,6 @@ export default function SignInPage({ onAuth }) {
     }
 
     setError("");
-    setErrorCode("");
     setLoading(true);
 
     try {
@@ -156,7 +74,6 @@ export default function SignInPage({ onAuth }) {
 
       if (!res.ok) {
         const loginError = new Error(data.message || "Login failed");
-        loginError.code = data.code;
         throw loginError;
       }
 
@@ -167,7 +84,6 @@ export default function SignInPage({ onAuth }) {
 
     } catch (err) {
       console.error("Login error:", err);
-      setErrorCode(err.code || "");
       setError(err.message || "Unable to login");
       setInfo("");
     } finally {
@@ -311,47 +227,6 @@ export default function SignInPage({ onAuth }) {
                 >
                   {error}
                 </motion.p>
-              )}
-
-              {errorCode === "EMAIL_NOT_VERIFIED" && (
-                <motion.div
-                  className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-3"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <p className="text-xs font-medium text-blue-900">
-                    Enter the 6-digit code we sent to {form.email || "your email"}.
-                  </p>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    className="w-full border border-blue-200 rounded-xl px-4 h-11 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition bg-white placeholder:text-neutral-300 tracking-[0.35em] text-center"
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <motion.button
-                      type="button"
-                      onClick={handleVerifyEmail}
-                      disabled={verifyLoading}
-                      className="w-full h-10 rounded-xl text-sm font-semibold bg-blue-700 text-white hover:bg-blue-600 transition disabled:opacity-60"
-                      whileTap={{ scale: 0.985 }}
-                    >
-                      {verifyLoading ? "Verifying..." : "Verify code"}
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      onClick={handleResendVerification}
-                      disabled={resendLoading}
-                      className="w-full h-10 rounded-xl text-sm font-semibold border border-blue-200 text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
-                      whileTap={{ scale: 0.985 }}
-                    >
-                      {resendLoading ? "Sending code..." : "Resend code"}
-                    </motion.button>
-                  </div>
-                </motion.div>
               )}
 
               {info && (

@@ -182,13 +182,13 @@ export default function ProfilePage({ user, onUserUpdate }) {
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-neutral-400 font-semibold">Email verified</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-neutral-400 font-semibold">Account status</p>
           <div className="mt-3 flex items-center gap-3">
-            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${user?.isEmailVerified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
               <CheckCircle2 size={18} />
             </div>
             <div>
-              <p className="text-lg font-semibold text-neutral-950">{user?.isEmailVerified ? "Verified" : "Pending"}</p>
+              <p className="text-lg font-semibold text-neutral-950">Active</p>
               <p className="text-sm text-neutral-500">{user?.email}</p>
             </div>
           </div>

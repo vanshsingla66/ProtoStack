@@ -106,7 +106,7 @@ export default function DashboardPage({ user }) {
       id: 2,
       title: `${goalLabel} roadmap`,
       sub: educationLabel,
-      duration: user?.isEmailVerified ? "Verified account" : "Verify email",
+      duration: "Account active",
       rating: user?.isOnboarded ? "Ready" : "Needs onboarding",
       level: "Next step",
       progress: user?.isOnboarded ? 70 : 25,
